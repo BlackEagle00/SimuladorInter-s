@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src= "https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+    <script src= "html2pdf.bundle.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <title>Banco Fedeagro - Calculador Crédito Bancario</title>
+</head>
+
+<body>  
+    <nav class="navbar navbar-expand-lg sticky-top navbar-dark" style="background-color: black;">
+        <a class="navbar-brand" href="/">
+            <div class="logo-image">
+                  <img src="img1.png" class="img-fluid">
+            </div>
+        </a>
+        <span class="navbar-brand mb-0 h1" href="#">Banco Fedeagro</span> 
+    </nav>
+    <br>
+    <div class="col-5" id="abc">
+        <div class="row mt-3">
+            <div class="col-5">
+                <label for="nombre">Nombre: </label><br><input class ="borderinput" type="text" name="nombre" id="nombre" maxlength="100" placeholder="Nombre">
+                <br><br>
+                <label for="dni">Documento de Identificación: </label><br><input class ="borderinput" type="text" name="dni" id="dni" maxlength="100" placeholder="Documento">
+                <br><br>
+                <label for="monto">Monto: </label><br>
+                <span class="currencyinput">$<input class ="borderinputmonto" type="text" name="monto" id="monto" placeholder="Monto a depositar"></span>
+                <br><br>
+                <label for="amortizacion">Línea de Crédito: Cuota Fija </label>
+                <br><br>
+                <label for="plazo">Plazo: </label>
+                <select id="plazo">
+                <option value="60">60</option>
+                <option value="72">72</option>
+                <option value="84">84</option>
+                <option value="96">96</option>
+                <option value="120">120</option>
+                </select> 
+                <br><br>
+                <label for="amortizacion">Amortización: </label>
+                <select id="amortizacion" name="amortizacion">
+                <option value="30">Mensual</option>
+                <option value="60">Bimestral</option>
+                <option value="90">Trimestral</option>
+                </select> 
+                <br><br>
+                <label for="tasa_interes">Tasa de Interés: </label><br><br>
+                <label for="EA">Efectivo Anual (EA): </label><br><input class ="borderinput" type="text" name="efectivo_anual" id="efectivo_anual" placeholder="% Efectivo Anual">
+                <br><br>
+                <label for="NA">Nominal Anual: </label><br><input class ="borderinput" type="text" name="nominal_anual" id="nominal_anual" placeholder="% Nominal Anual">
+                <br><br>
+                <label for="PV">Periodo Vencido (ip): </label><br><input class ="borderinput" type="text" name="periodo_vencido" id="periodo_vencido" placeholder="% Periodo Vencido">
+                <br><br>
+                <input type="button" class="btn btn-primary" id="btnCalcular" value="Calcular Interés" onclick="calcularCuota()"></input>      
+                <br><br>
+                <input type="button" class="btn btn-primary" id="btnCrearPdf" value="Generar PDF" onclick="generatePDF()"></input>      
+                <br><br>
+            </div>
+
+            <div class="col-6" style="text-align: center;">
+                <table id="lista-tabla" class="table table-striped table-dark">
+                    <thead>
+                        <tr>
+                            <th>Cuota</th>
+                            <th>Fecha</th>
+                            <th>Saldo de Capital</th>
+                            <th>Amortización a Capital</th>
+                            <th>Amortización a Intereses</th>
+                            <th>Cuota Fija</th>
+                            <th>Flujo de Caja</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="amortizacion.js"></script>
+    <script src="moment.js"></script>   
+    <script src="pdf.js"></script>
+
+
+<!-- Footer -->
+<footer class="page-footer font-small blue">
+
+    <!-- Copyright -->
+    <div class="footer-copyright text-center py-3">© 2021 Copyright:
+      <a href="https://mdbootstrap.com/"> andres.bonilla@uniminuto.edu.co</a>
+    </div>
+    <!-- Copyright -->
+  
+  </footer>
+  <!-- Footer -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+
+<script>
+    $(document).ready(function () {
+      $("#efectivo_anual").keyup(function () {
+        var ea = $(this).val() / 100;
+        var amortizacion = $("#amortizacion").val();
+        var ip = Math.pow((1 + ea), (amortizacion / 360)) - 1;
+        ip = (ip * 100);
+        var nominal = ip * (360 / amortizacion);
+        $("#nominal_anual").val(nominal.toFixed(2));
+        $("#periodo_vencido").val(ip.toFixed(2));
+      });
+    });
+  
+    $(document).ready(function () {
+        $("#nominal_anual").keyup(function () {
+            var na = $(this).val();
+            var amortizacion = 360 / $("#amortizacion").val();
+            var dias = 360 / amortizacion;
+            var ip = na / amortizacion;
+            var ip2 = ip / 100;
+            var ea = Math.pow((1 + ip2), (360 / dias)) - 1;
+            ea = (ea * 100);
+    
+            $("#efectivo_anual").val(ea.toFixed(2));
+            $("#periodo_vencido").val(ip.toFixed(2));
+    
+        });
+    });
+  
+    $(document).ready(function () {
+        $("#periodo_vencido").keyup(function () {
+            var ip = $(this).val();
+            var amortizacion = 360 / $("#amortizacion").val();
+            var dias = 360 / amortizacion;
+            var na = (ip * amortizacion);
+            ip = ip / 100;
+            var ea = Math.pow((1 + ip), (360 / dias)) - 1;
+            ea = (ea * 100);
+    
+            $("#efectivo_anual").val(ea.toFixed(2));
+            $("#nominal_anual").val(na.toFixed(2));
+    
+        });
+    });
+  
+  </script>
+
+</html>
